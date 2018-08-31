@@ -311,6 +311,13 @@ class ReactVlcPlayerView extends SurfaceView implements
                 m = new Media(libvlc, this.src);
             }
 
+            m.addOption(":rtsp-tcp");
+            int cache = 200;
+            m.addOption(":file-caching="+cache);
+            m.addOption(":network-caching="+cache);
+            m.addOption(":codec=mediacodec,iomx,all");
+            m.addOption(":demux=h264");
+
             mMediaPlayer.setMedia(m);
             mMediaPlayer.setScale(0);
             if(autoplay){

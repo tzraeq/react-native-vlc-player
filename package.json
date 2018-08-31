@@ -12,7 +12,8 @@
     "android",
     "ios",
     "react-native",
-    "mp4"
+    "mp4",
+    "rtsp"
   ],
   "author": "yuanzhou.xu & tzraeq",
   "email": "635043894@qq.com",

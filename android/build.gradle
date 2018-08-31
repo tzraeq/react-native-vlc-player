@@ -20,7 +20,7 @@ android {
         versionName "1.0"
         ndk {
             //支持的abi    可选 精简的库
-            abiFilters 'armeabi-v7a'//,'x86_64','arm64-v8a','x86'
+            abiFilters 'armeabi-v7a','arm64-v8a'//,'x86_64','x86'
         }
     }
     buildTypes {
@@ -31,9 +31,14 @@ android {
     }
 }
 
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
     provided fileTree(dir: 'libs', include: ['*.jar'])
     provided "com.facebook.react:react-native:${_reactNativeVersion}"
-    compile 'com.yyl.vlc:vlc-android-sdk:3.0.13'
+    // compile 'com.yyl.vlc:vlc-android-sdk:3.0.13'
     //compile 'de.mrmaffen:vlc-android-sdk:2.0.6'
+    compile 'com.github.tzraeq:Vlc-sdk-lib:3.0.13-beta.1'
 }
