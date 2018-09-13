@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -21,6 +22,7 @@ public class ReactVlcPlayerViewManager extends SimpleViewManager<ReactVlcPlayerV
     private static final String PROP_SRC = "source";
     private static final String PROP_SRC_URI = "uri";
     private static final String PROP_SRC_TYPE = "type";
+    private static final String PROP_SRC_INITOPTIONS = "initOptions";
     private static final String PROP_REPEAT = "repeat";
     private static final String PROP_PAUSED = "paused";
     private static final String PROP_MUTED = "muted";
@@ -63,6 +65,15 @@ public class ReactVlcPlayerViewManager extends SimpleViewManager<ReactVlcPlayerV
         String extension = src.hasKey(PROP_SRC_TYPE) ? src.getString(PROP_SRC_TYPE) : null;
         boolean isNetStr = src.getBoolean(PROP_SRC_IS_NETWORK) ? src.getBoolean(PROP_SRC_IS_NETWORK) : false;
         boolean autoplay = src.getBoolean("autoplay") ? src.getBoolean("autoplay") : true;
+        ReadableArray initOptionsArray = src.hasKey(PROP_SRC_INITOPTIONS)?src.getArray(PROP_SRC_INITOPTIONS):null;
+        String[] initOptions = null;
+        if(null != initOptionsArray){
+            initOptions  = new String[initOptionsArray.size()];
+            for(int i = 0; i < initOptions.length; i++){
+                initOptions[i] = initOptionsArray.getString(i);
+            }
+        }
+        videoView.setInitOptions(initOptions);
         if (TextUtils.isEmpty(uriString)) {
             return;
         }

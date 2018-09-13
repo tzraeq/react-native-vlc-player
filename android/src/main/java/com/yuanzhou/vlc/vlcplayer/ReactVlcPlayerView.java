@@ -44,6 +44,7 @@ class ReactVlcPlayerView extends SurfaceView implements
     private String src;
     //是否网络资源
     private  boolean netStrTag;
+    private String[] initOptions;
 
 
     //private Handler mainHandler;
@@ -311,12 +312,18 @@ class ReactVlcPlayerView extends SurfaceView implements
                 m = new Media(libvlc, this.src);
             }
 
-            m.addOption(":rtsp-tcp");
+            if(null != initOptions){
+                for(int i = 0; i < initOptions.length; i++){
+                    m.addOption(initOptions[i]);
+                }
+            }
+
+/*            m.addOption(":rtsp-tcp");
             int cache = 200;
             m.addOption(":file-caching="+cache);
             m.addOption(":network-caching="+cache);
             m.addOption(":codec=mediacodec,iomx,all");
-            m.addOption(":demux=h264");
+            m.addOption(":demux=h264");*/
 
             mMediaPlayer.setMedia(m);
             mMediaPlayer.setScale(0);
@@ -460,6 +467,10 @@ class ReactVlcPlayerView extends SurfaceView implements
 
     public void cleanUpResources() {
         stopPlayback();
+    }
+
+    public void setInitOptions(String[] initOptions) {
+        this.initOptions = initOptions;
     }
 
     /*private void changeSurfaceSize(boolean message) {
