@@ -107,6 +107,10 @@ export default class VLCPlayer extends Component {
     }
   }
 
+  shouldComponentUpdate(nextProps, nextState){
+    return false;
+  }
+
   render() {
     const source = resolveAssetSource(this.props.source) || {};
     let uri = source.uri || '';
