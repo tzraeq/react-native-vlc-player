@@ -155,6 +155,8 @@ VLCPlayer.propTypes = {
    * 0 --- 200
    */
   volume: PropTypes.number,
+  volumeUp: PropTypes.number,
+  volumeDown: PropTypes.number,
   repeat: PropTypes.bool,
   muted: PropTypes.bool,
 
