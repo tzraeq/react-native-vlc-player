@@ -312,6 +312,8 @@ class ReactVlcPlayerView extends SurfaceView implements
                 m = new Media(libvlc, this.src);
             }
 
+            m.setHWDecoderEnabled(false, false);
+
             if(null != initOptions){
                 for(int i = 0; i < initOptions.length; i++){
                     m.addOption(initOptions[i]);
