@@ -19,6 +19,7 @@ public class ReactVlcPlayerViewManager extends SimpleViewManager<ReactVlcPlayerV
 
     private static final String REACT_CLASS = "RCTVLCPlayer";
 
+    private static final String PROP_HA_ENABLED = "haEnabled";
     private static final String PROP_SRC = "source";
     private static final String PROP_SRC_URI = "uri";
     private static final String PROP_SRC_TYPE = "type";
@@ -56,6 +57,11 @@ public class ReactVlcPlayerViewManager extends SimpleViewManager<ReactVlcPlayerV
             builder.put(event, MapBuilder.of("registrationName", event));
         }
         return builder.build();
+    }
+
+    @ReactProp(name = PROP_HA_ENABLED)
+    public void setHaEnabled(final ReactVlcPlayerView videoView, final boolean enabled) {
+        videoView.setHaEnabled(enabled);
     }
 
     @ReactProp(name = PROP_SRC)

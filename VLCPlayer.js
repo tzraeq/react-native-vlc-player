@@ -168,6 +168,7 @@ VLCPlayer.propTypes = {
   onIsPlaying: PropTypes.func,
 
   /* Wrapper component */
+  haEnabled: PropTypes.bool,
   source: PropTypes.object,
   play: PropTypes.func,
   snapshot: PropTypes.func,

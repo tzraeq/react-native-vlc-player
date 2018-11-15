@@ -75,6 +75,7 @@ class ReactVlcPlayerView extends SurfaceView implements
     private boolean isPaused = true;
     private boolean isHostPaused = false;
     private int preVolume = 200;
+    private boolean haEnabled = false;
 
     // React
     private final ThemedReactContext themedReactContext;
@@ -312,7 +313,7 @@ class ReactVlcPlayerView extends SurfaceView implements
                 m = new Media(libvlc, this.src);
             }
 
-            m.setHWDecoderEnabled(false, false);
+            m.setHWDecoderEnabled(this.haEnabled, false);
 
             if(null != initOptions){
                 for(int i = 0; i < initOptions.length; i++){
@@ -473,6 +474,10 @@ class ReactVlcPlayerView extends SurfaceView implements
 
     public void setInitOptions(String[] initOptions) {
         this.initOptions = initOptions;
+    }
+
+    public void setHaEnabled(boolean enabled) {
+        this.haEnabled = enabled;
     }
 
     /*private void changeSurfaceSize(boolean message) {
