@@ -5,7 +5,7 @@ const { Component } = React;
 
 import PropTypes from 'prop-types';
 
-const { StyleSheet, requireNativeComponent, NativeModules, View } = ReactNative;
+const { StyleSheet, requireNativeComponent, NativeModules, View, Platform } = ReactNative;
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 
 export default class VLCPlayer extends Component {
@@ -40,6 +40,10 @@ export default class VLCPlayer extends Component {
     this.setNativeProps({ paused: paused });
   }
 
+  position(position){
+    this.setNativeProps({ position: position });
+  }
+
   resume(isResume) {
     this.setNativeProps({ resume: isResume });
   }
@@ -53,7 +57,13 @@ export default class VLCPlayer extends Component {
   }
 
   _onVideoStateChange(event){
+    //
     let type = event.nativeEvent.type;
+    if(__DEV__){
+      if(type === 'onNewVideoLayout'){
+        console.log(type,event.nativeEvent);
+      }
+    }
     switch (type){
       case 'Opening':
         this.props.onOpen && this.props.onOpen(event.nativeEvent);
@@ -73,9 +83,14 @@ export default class VLCPlayer extends Component {
       case 'Buffering':
         this.props.onBuffering && this.props.onBuffering(event.nativeEvent);
         break;
+      case 'onLoadStart':
+        this.props.onLoadStart && this.props.onLoadStart(event.nativeEvent);
+        break;
       case 'Error':
         this.props.onError && this.props.onError(event.nativeEvent);
         break;
+      case 'TimeChanged':
+        this.props.onProgress && this.props.onProgress(event.nativeEvent);
       default:
         this.props.onVideoStateChange && this.props.onVideoStateChange(event);
         break;
@@ -122,11 +137,29 @@ export default class VLCPlayer extends Component {
     if (uri && uri.match(/^\//)) {
       isNetwork = false;
     }
-    source.initOptions = source.initOptions || [];
+    if(Platform.OS === 'ios'){
+      source.mediaOptions = this.props.mediaOptions || {};
+    }else{
+      let mediaOptionsList = [];
+      let mediaOptions = this.props.mediaOptions || {};
+      let keys = Object.keys(mediaOptions);
+      for(let i=0; i < keys.length - 1; i++){
+        let optionKey = keys[i];
+        let optionValue = mediaOptions[optionKey];
+        mediaOptionsList.push(optionKey + '=' + optionValue);
+      }
+      source.mediaOptions = mediaOptionsList;
+    }
+    source.initOptions = this.props.initOptions || [];
     source.isNetwork = isNetwork;
     source.autoplay = this.props.autoplay;
+    if(this.props.initType){
+      source.initType = this.props.initType;
+    }else{
+      source.initType = 1;
+    }
     //repeat the input media
-    source.initOptions.push('--input-repeat=1000');
+    //source.initOptions.push('--input-repeat=1000');
     const nativeProps = Object.assign({}, this.props);
     Object.assign(nativeProps, {
       style: [styles.base, nativeProps.style],
@@ -148,6 +181,7 @@ VLCPlayer.propTypes = {
   rate: PropTypes.number,
   seek: PropTypes.number,
   resume: PropTypes.bool,
+  position: PropTypes.number,
   snapshotPath: PropTypes.string,
   paused: PropTypes.bool,
   videoAspectRatio: PropTypes.string,
@@ -155,7 +189,7 @@ VLCPlayer.propTypes = {
    * 0 --- 200
    */
   volume: PropTypes.number,
-  volumeUp: PropTypes.number,
+  volumeUp:PropTypes.number,
   volumeDown: PropTypes.number,
   repeat: PropTypes.bool,
   muted: PropTypes.bool,
@@ -169,7 +203,7 @@ VLCPlayer.propTypes = {
 
   /* Wrapper component */
   haEnabled: PropTypes.bool,
-  source: PropTypes.object,
+  source: PropTypes.oneOfType([PropTypes.object,PropTypes.number]),
   play: PropTypes.func,
   snapshot: PropTypes.func,
   onError: PropTypes.func,
