@@ -72,15 +72,6 @@ public class ReactVlcPlayerViewManager extends SimpleViewManager<ReactVlcPlayerV
         String extension = src.hasKey(PROP_SRC_TYPE) ? src.getString(PROP_SRC_TYPE) : null;
         boolean isNetStr = src.getBoolean(PROP_SRC_IS_NETWORK) ? src.getBoolean(PROP_SRC_IS_NETWORK) : false;
         boolean autoplay = src.getBoolean("autoplay") ? src.getBoolean("autoplay") : true;
-        ReadableArray initOptionsArray = src.hasKey(PROP_SRC_INITOPTIONS)?src.getArray(PROP_SRC_INITOPTIONS):null;
-        String[] initOptions = null;
-        if(null != initOptionsArray){
-            initOptions  = new String[initOptionsArray.size()];
-            for(int i = 0; i < initOptions.length; i++){
-                initOptions[i] = initOptionsArray.getString(i);
-            }
-        }
-        videoView.setInitOptions(initOptions);
         if (TextUtils.isEmpty(uriString)) {
             return;
         }

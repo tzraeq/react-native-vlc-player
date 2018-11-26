@@ -549,10 +549,6 @@ class ReactVlcPlayerView extends TextureView implements
         stopPlayback();
     }
 
-    public void setInitOptions(String[] initOptions) {
-        this.initOptions = initOptions;
-    }
-
     public void setHaEnabled(boolean enabled) {
         this.haEnabled = enabled;
     }
