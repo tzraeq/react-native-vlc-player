@@ -89,62 +89,133 @@ static NSString *const playbackRate = @"rate";
     }
 }
 
--(void)setResume:(BOOL)autoplay
-{
-    if(_player){
-        [_player stop];
-        _player = nil;
-    }
-    //NSArray* options = [_source objectForKey:@"initOptions"];
-    NSString* uri    = [_source objectForKey:@"uri"];
-    BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
-    NSURL* _uri    = [NSURL URLWithString:uri];
-    
-    _player = [[VLCMediaPlayer alloc] init];
-    [_player setDrawable:self];
-    _player.delegate = self;
-    _player.scaleFactor = 0;
-    NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
-    //设置缓存多少毫秒
-    [mediaDictonary setObject:@"1500" forKey:@"network-caching"];
-    VLCMedia *media = nil;
-    if(isNetWork){
-        media = [VLCMedia mediaWithURL:_uri];
-    }else{
-        media = [VLCMedia mediaWithPath: uri];
-    }
-    [media addOptions:mediaDictonary];
-    _player.media = media;
-    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
-    NSLog(@"autoplay: %i",autoplay);
-    self.onVideoLoadStart(@{
-                            @"target": self.reactTag
-                            });
-}
-
--(void)setSource:(NSDictionary *)source
-{
+-(void)createPlayer:(NSDictionary *)source :(BOOL)autoplay {
     @try{
         if(_player){
             [_player stop];
             _player = nil;
         }
         _source = source;
-        //NSArray* options = [source objectForKey:@"initOptions"];
+        NSArray* options = [source objectForKey:@"initOptions"];
+        NSString* uri    = [source objectForKey:@"uri"];
+//        BOOL    autoplay = [RCTConvert BOOL:[source objectForKey:@"autoplay"]];
+        BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
+        NSURL* _uri    = [NSURL URLWithString:uri];
+        
+        //init player && play
+        _player = [[VLCMediaPlayer alloc] initWithOptions:options];
+        //        _player = [[VLCMediaPlayer alloc] init];
+        [_player setDrawable:self];
+        _player.delegate = self;
+        _player.scaleFactor = 0;
+        NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
+        //设置缓存多少毫秒
+        //        [mediaDictonary setObject:@"200" forKey:@":network-caching"];
+        
+        for(NSString* option in options){
+            NSArray *array = [option componentsSeparatedByString:@"="];
+            if(array.count > 1){
+                [mediaDictonary setObject:array[1] forKey:array[0]];
+            }
+        }
+        
+        VLCMedia *media = nil;
+        if(isNetWork){
+            media = [VLCMedia mediaWithURL:_uri];
+        }else{
+            media = [VLCMedia mediaWithPath: uri];
+        }
+        [media addOptions:mediaDictonary];
+        _player.media = media;
+        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+        NSLog(@"autoplay: %i",autoplay);
+        NSLog(@"isNetWork: %i",isNetWork);
+        self.onVideoLoadStart(@{
+                                @"target": self.reactTag
+                                });
+        if(autoplay)
+            [self play];
+    }
+    @catch(NSException *exception){
+        NSLog(@"%@", exception);
+    }
+}
+
+-(void)setResume:(BOOL)autoplay
+{
+    [self createPlayer:_source :autoplay];
+    /*if(_player){
+        [_player stop];
+        _player = nil;
+    }
+    NSArray* options = [_source objectForKey:@"initOptions"];
+    NSString* uri    = [_source objectForKey:@"uri"];
+    BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
+    NSURL* _uri    = [NSURL URLWithString:uri];
+    
+//    _player = [[VLCMediaPlayer alloc] init];
+    _player = [[VLCMediaPlayer alloc] initWithOptions:options];
+    [_player setDrawable:self];
+    _player.delegate = self;
+    _player.scaleFactor = 0;
+   NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
+    //设置缓存多少毫秒
+//    [mediaDictonary setObject:@"1500" forKey:@"network-caching"];
+    
+    for(NSString* option in options){
+            NSArray *array = [option componentsSeparatedByString:@"="];
+            if(array.count > 1){
+                [mediaDictonary setObject:array[1] forKey:array[0]];
+            }
+        }
+    
+    VLCMedia *media = nil;
+    if(isNetWork){
+        media = [VLCMedia mediaWithURL:_uri];
+    }else{
+        media = [VLCMedia mediaWithPath: uri];
+    }
+   [media addOptions:mediaDictonary];
+    _player.media = media;
+    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    NSLog(@"autoplay: %i",autoplay);
+    self.onVideoLoadStart(@{
+                            @"target": self.reactTag
+                            });*/
+}
+
+-(void)setSource:(NSDictionary *)source
+{
+    [self createPlayer:source :[RCTConvert BOOL:[source objectForKey:@"autoplay"]]];
+    /*@try{
+        if(_player){
+            [_player stop];
+            _player = nil;
+        }
+        _source = source;
+        NSArray* options = [source objectForKey:@"initOptions"];
         NSString* uri    = [source objectForKey:@"uri"];
         BOOL    autoplay = [RCTConvert BOOL:[source objectForKey:@"autoplay"]];
         BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
         NSURL* _uri    = [NSURL URLWithString:uri];
         
         //init player && play
-        //_player = [[VLCMediaPlayer alloc] initWithOptions:options];
-        _player = [[VLCMediaPlayer alloc] init];
+        _player = [[VLCMediaPlayer alloc] initWithOptions:options];
+//        _player = [[VLCMediaPlayer alloc] init];
         [_player setDrawable:self];
         _player.delegate = self;
         _player.scaleFactor = 0;
         NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
         //设置缓存多少毫秒
-        [mediaDictonary setObject:@"1500" forKey:@"network-caching"];
+//        [mediaDictonary setObject:@"200" forKey:@":network-caching"];
+        
+        for(NSString* option in options){
+            NSArray *array = [option componentsSeparatedByString:@"="];
+            if(array.count > 1){
+                [mediaDictonary setObject:array[1] forKey:array[0]];
+            }
+        }
+        
         VLCMedia *media = nil;
         if(isNetWork){
             media = [VLCMedia mediaWithURL:_uri];
@@ -164,7 +235,7 @@ static NSString *const playbackRate = @"rate";
     }
     @catch(NSException *exception){
           NSLog(@"%@", exception);
-    }
+    }*/
 }
 
 - (void)mediaPlayerSnapshot:(NSNotification *)aNotification{
