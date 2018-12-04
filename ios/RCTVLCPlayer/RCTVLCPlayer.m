@@ -103,8 +103,8 @@ static NSString *const playbackRate = @"rate";
         NSURL* _uri    = [NSURL URLWithString:uri];
         
         //init player && play
-        _player = [[VLCMediaPlayer alloc] initWithOptions:options];
-        //        _player = [[VLCMediaPlayer alloc] init];
+        // _player = [[VLCMediaPlayer alloc] initWithOptions:options];
+        _player = [[VLCMediaPlayer alloc] init];
         [_player setDrawable:self];
         _player.delegate = self;
         _player.scaleFactor = 0;
