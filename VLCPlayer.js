@@ -48,6 +48,10 @@ export default class VLCPlayer extends Component {
     this.setNativeProps({ snapshotPath: path });
   }
 
+  mute(muted) {
+    this.setNativeProps({ muted });
+  }
+
   _assignRoot(component) {
     this._root = component;
   }
