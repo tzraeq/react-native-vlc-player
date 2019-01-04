@@ -49,6 +49,7 @@ export default class VLCPlayer extends Component {
   }
 
   mute(muted) {
+    this.muted = muted;
     this.setNativeProps({ muted });
   }
 
