@@ -11,12 +11,13 @@ import java.util.Collections;
 import java.util.List;
 
 import com.yuanzhou.vlc.vlcplayer.ReactVlcPlayerViewManager;
+import com.yuanzhou.vlc.vlcplayer.ReactVlcPlayerViewModule;
 
 public class ReactVlcPlayerPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        return Collections.emptyList();
+        return Collections.<NativeModule>singletonList(new ReactVlcPlayerViewModule(reactContext));
     }
 
     // Deprecated RN 0.47

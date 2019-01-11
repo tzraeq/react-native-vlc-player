@@ -5,8 +5,10 @@ const { Component } = React;
 
 import PropTypes from 'prop-types';
 
-const { StyleSheet, requireNativeComponent, NativeModules, View } = ReactNative;
+const { StyleSheet, requireNativeComponent, NativeModules, View, findNodeHandle } = ReactNative;
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
+
+const reactVlcPlayerViewModule = NativeModules.ReactVlcPlayerViewModule;
 
 export default class VLCPlayer extends Component {
   constructor(props, context) {
@@ -22,6 +24,10 @@ export default class VLCPlayer extends Component {
     this._onIsPlaying = this._onIsPlaying.bind(this);
     this._onVideoStateChange = this._onVideoStateChange.bind(this);
 
+  }
+
+  takeSnapshot(path){
+    return reactVlcPlayerViewModule.takeSnapshot(findNodeHandle(this._root),path);
   }
 
   static defaultProps = {
@@ -82,7 +88,7 @@ export default class VLCPlayer extends Component {
         this.props.onError && this.props.onError(event.nativeEvent);
         break;
       default:
-        this.props.onVideoStateChange && this.props.onVideoStateChange(event);
+        this.props.onVideoStateChange && this.props.onVideoStateChange(event.nativeEvent);
         break;
     }
   }
