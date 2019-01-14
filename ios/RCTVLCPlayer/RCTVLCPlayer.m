@@ -24,7 +24,6 @@ static NSString *const playbackRate = @"rate";
     NSDictionary * _source;
     BOOL _paused;
     BOOL _started;
-    
 }
 
 
@@ -471,6 +470,27 @@ static NSString *const playbackRate = @"rate";
     }
 }
 
+- (int) takeSnapshot:(NSString*)path {
+    if(_player && _player.hasVideoOut){
+        [_player saveVideoSnapshotAt:path withWidth:0 andHeight:0];
+        return 0;
+    }
+    return -1;
+}
+
+- (BOOL) startRecord:(NSString*)fileDirectory{
+    if(_player && _player.hasVideoOut){
+        return [_player startRecordingAtPath:fileDirectory];
+    }
+    return NO;
+}
+
+- (BOOL) stopRecord{
+    if(_player){
+        return [_player stopRecording];
+    }
+    return NO;
+}
 
 #pragma mark - Lifecycle
 - (void)removeFromSuperview

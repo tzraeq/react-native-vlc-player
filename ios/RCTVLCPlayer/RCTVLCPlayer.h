@@ -20,5 +20,7 @@
 
 
 - (instancetype)initWithEventDispatcher:(RCTEventDispatcher *)eventDispatcher NS_DESIGNATED_INITIALIZER;
-
+- (int) takeSnapshot:(NSString*)path;
+- (BOOL) startRecord:(NSString*)fileDirectory;
+- (BOOL) stopRecord;
 @end

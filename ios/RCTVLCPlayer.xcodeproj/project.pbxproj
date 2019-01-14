@@ -222,7 +222,7 @@
 		0CA30C4E1D07E0DB003B09F9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../../vlcKit";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../../ios/";
 				HEADER_SEARCH_PATHS = (
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../react-native/React/**",
@@ -240,7 +240,7 @@
 		0CA30C4F1D07E0DB003B09F9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../../vlcKit";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../../ios/";
 				HEADER_SEARCH_PATHS = (
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../react-native/React/**",
