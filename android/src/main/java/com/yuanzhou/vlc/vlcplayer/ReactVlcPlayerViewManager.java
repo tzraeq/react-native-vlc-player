@@ -1,7 +1,6 @@
 package com.yuanzhou.vlc.vlcplayer;
 
 import android.content.Context;
-import android.net.Uri;
 import android.text.TextUtils;
 
 import com.facebook.react.bridge.ReadableMap;
@@ -132,15 +131,5 @@ public class ReactVlcPlayerViewManager extends SimpleViewManager<ReactVlcPlayerV
     @ReactProp(name = PROP_SNAPSHOT_PATH)
     public void setSnapshotPath(final ReactVlcPlayerView videoView, final String snapshotPath) {
         videoView.doSnapshot(snapshotPath);
-    }
-
-
-
-    private boolean startsWithValidScheme(String uriString) {
-        return uriString.startsWith("http://")
-                || uriString.startsWith("https://")
-                || uriString.startsWith("content://")
-                || uriString.startsWith("file://")
-                || uriString.startsWith("asset://");
     }
 }

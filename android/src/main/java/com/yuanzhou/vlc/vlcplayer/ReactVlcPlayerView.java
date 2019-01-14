@@ -26,6 +26,8 @@ import org.videolan.libvlc.util.VLCUtil;
 import org.videolan.vlc.RecordEvent;
 import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.VlcVideoView;
+
+import java.io.File;
 import java.util.ArrayList;
 
 @SuppressLint("ViewConstructor")
@@ -76,6 +78,7 @@ class ReactVlcPlayerView extends SurfaceView implements
     private boolean isHostPaused = false;
     private int preVolume = 200;
     private boolean haEnabled = false;
+    private boolean hasVideoOut = false;
 
     // React
     private final ThemedReactContext themedReactContext;
@@ -188,6 +191,7 @@ class ReactVlcPlayerView extends SurfaceView implements
             totalLength = mMediaPlayer.getLength();
             WritableMap map = Arguments.createMap();
             map.putBoolean("isPlaying",isPlaying);
+            map.putBoolean("hasVideoOut",hasVideoOut);
             map.putDouble("currentTime",currentTime);
             map.putDouble("duration",totalLength);
             switch (event.type) {
@@ -226,6 +230,12 @@ class ReactVlcPlayerView extends SurfaceView implements
                     currentTime = mMediaPlayer.getTime();
                     totalLength = mMediaPlayer.getLength();
                     eventEmitter.progressChanged(currentTime, totalLength);
+                    break;
+                case MediaPlayer.Event.Vout:
+//                    map.putString("type","Vout");
+//                    map.putBoolean("hasVideoOut",event.getVoutCount() > 0);
+                    hasVideoOut = (event.getVoutCount() > 0);
+//                    eventEmitter.onVideoStateChange(map);
                     break;
                 default:
                     map.putString("type",event.type+"");
@@ -341,6 +351,7 @@ class ReactVlcPlayerView extends SurfaceView implements
     }
 
     private void releasePlayer() {
+        this.hasVideoOut = false;
         if (libvlc == null)
             return;
         mMediaPlayer.stop();
@@ -432,7 +443,7 @@ class ReactVlcPlayerView extends SurfaceView implements
      * 截图
      * @param path
      */
-    public void doSnapshot(String path){
+    public int doSnapshot(String path){
         if(mMediaPlayer != null){
             int result = new RecordEvent().takeSnapshot(mMediaPlayer,path,0,0);
             if(result == 0){
@@ -440,8 +451,9 @@ class ReactVlcPlayerView extends SurfaceView implements
             }else{
                 eventEmitter.onSnapshot(0);
             }
+            return result;
         }
-
+        return -1;
     }
 
 
@@ -477,7 +489,26 @@ class ReactVlcPlayerView extends SurfaceView implements
     }
 
     public void setHaEnabled(boolean enabled) {
+        if(mMediaPlayer != null){
+            mMediaPlayer.getMedia().setHWDecoderEnabled(haEnabled, false);
+        }
         this.haEnabled = enabled;
+    }
+
+    public int takeSnapshot(String path){
+        if(mMediaPlayer != null) {
+            return new RecordEvent().takeSnapshot(mMediaPlayer, path, 0, 0);
+        }
+        return -1;
+    }
+
+
+    public boolean startRecord(String fileDirectory){
+        return new RecordEvent().startRecord(mMediaPlayer,fileDirectory);
+    }
+
+    public boolean stopRecord(){
+        return new RecordEvent().stopRecord(mMediaPlayer);
     }
 
     /*private void changeSurfaceSize(boolean message) {

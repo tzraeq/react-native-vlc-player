@@ -1,4 +1,4 @@
-/* buildscript {
+ /*buildscript {
     repositories {
         jcenter()
         google()
@@ -15,7 +15,8 @@
      maven {
          url "$rootDir/../node_modules/react-native/android"
      }
-     maven { url 'https://jitpack.io' }
+//     maven { url 'https://jitpack.io' }
+     maven { url "https://raw.githubusercontent.com/tzraeq/maven/master/releases" }
  }*/
 
 apply plugin: 'com.android.library'
@@ -51,10 +52,12 @@ android {
     }
 }
 
-dependencies {
-    provided fileTree(dir: 'libs', include: ['*.jar'])
-    provided "com.facebook.react:react-native:${_reactNativeVersion}"
-    // compile 'com.yyl.vlc:vlc-android-sdk:3.0.13'
-    //compile 'de.mrmaffen:vlc-android-sdk:2.0.6'
-    compile 'com.github.tzraeq:Vlc-sdk-lib:3.0.13-beta.1'
-}
+ dependencies {
+     provided fileTree(include: ['*.jar'], dir: 'libs')
+     provided "com.facebook.react:react-native:${_reactNativeVersion}"
+
+     // compile 'com.yyl.vlc:vlc-android-sdk:3.0.13'
+
+     //compile 'de.mrmaffen:vlc-android-sdk:2.0.6'
+     implementation 'com.github.tzraeq:Vlc-sdk-lib:3.0.13-beta.1'
+ }
