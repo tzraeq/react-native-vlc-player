@@ -33,10 +33,6 @@ export default class VLCPlayer extends Component {
     }else{
       return vlcPlayerManager.takeSnapshot(findNodeHandle(this._root),path)
     }
-/*     return Platform.select({
-      android: reactVlcPlayerViewModule.takeSnapshot(findNodeHandle(this._root),path),
-      ios: vlcPlayerManager.takeSnapshot(findNodeHandle(this._root),path),
-    }); */
   }
 
   static defaultProps = {
