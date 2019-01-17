@@ -28,7 +28,7 @@ export default class VLCPlayer extends Component {
   }
 
   takeSnapshot(path){
-    if('andoird' == Platform.OS){
+    if('android' == Platform.OS){
       return reactVlcPlayerViewModule.takeSnapshot(findNodeHandle(this._root),path)
     }else{
       return vlcPlayerManager.takeSnapshot(findNodeHandle(this._root),path)
