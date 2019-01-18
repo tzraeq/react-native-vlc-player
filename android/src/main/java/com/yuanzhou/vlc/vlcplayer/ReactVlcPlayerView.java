@@ -462,7 +462,10 @@ class ReactVlcPlayerView extends SurfaceView implements
      * @param autoplay
      */
     public void doResume(boolean autoplay){
-        createPlayer(autoplay);
+        // createPlayer(autoplay);
+        this.hasVideoOut = false;
+        mMediaPlayer.stop();
+        mMediaPlayer.play();
     }
 
 
