@@ -414,10 +414,9 @@ class ReactVlcPlayerView extends SurfaceView implements
     public void setMutedModifier(boolean muted) {
         if(mMediaPlayer != null){
             if(muted){
-                this.preVolume = mMediaPlayer.getVolume();
-                mMediaPlayer.setVolume(0);
+                mMediaPlayer.setAudioTrack(-1);
             }else{
-                mMediaPlayer.setVolume(this.preVolume);
+                mMediaPlayer.setAudioTrack(1);
             }
         }
     }
