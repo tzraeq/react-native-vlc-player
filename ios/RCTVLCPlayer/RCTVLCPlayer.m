@@ -23,7 +23,7 @@ static NSString *const playbackRate = @"rate";
     
     NSDictionary * _source;
     BOOL _paused;
-    BOOL _started;
+    // BOOL _started;
 }
 
 
@@ -74,7 +74,7 @@ static NSString *const playbackRate = @"rate";
         }else {
             [_player pause];
             _paused =  YES;
-            _started = NO;
+            // _started = NO;
         }
     }
 }
@@ -84,7 +84,7 @@ static NSString *const playbackRate = @"rate";
     if(_player){
         [_player play];
         _paused = NO;
-        _started = YES;
+        // _started = YES;
     }
 }
 
