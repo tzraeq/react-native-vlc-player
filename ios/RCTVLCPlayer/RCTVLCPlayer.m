@@ -23,7 +23,8 @@ static NSString *const playbackRate = @"rate";
     
     NSDictionary * _source;
     BOOL _paused;
-    // BOOL _started;
+//    BOOL _started;
+    NSString* _aspectRatio;
 }
 
 
@@ -74,7 +75,7 @@ static NSString *const playbackRate = @"rate";
         }else {
             [_player pause];
             _paused =  YES;
-            // _started = NO;
+//            _started = NO;
         }
     }
 }
@@ -84,7 +85,7 @@ static NSString *const playbackRate = @"rate";
     if(_player){
         [_player play];
         _paused = NO;
-        // _started = YES;
+//        _started = YES;
     }
 }
 
@@ -97,7 +98,7 @@ static NSString *const playbackRate = @"rate";
         _source = source;
         NSArray* options = [source objectForKey:@"initOptions"];
         NSString* uri    = [source objectForKey:@"uri"];
-//        BOOL    autoplay = [RCTConvert BOOL:[source objectForKey:@"autoplay"]];
+        //        BOOL    autoplay = [RCTConvert BOOL:[source objectForKey:@"autoplay"]];
         BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
         NSURL* _uri    = [NSURL URLWithString:uri];
         
@@ -107,6 +108,11 @@ static NSString *const playbackRate = @"rate";
         [_player setDrawable:self];
         _player.delegate = self;
         _player.scaleFactor = 0;
+        if(_aspectRatio){
+            char* aspectRatio = [_aspectRatio cStringUsingEncoding:NSASCIIStringEncoding];
+            [_player setVideoAspectRatio:aspectRatio];
+        }
+        
         NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
         //设置缓存多少毫秒
         //        [mediaDictonary setObject:@"200" forKey:@":network-caching"];
@@ -121,10 +127,10 @@ static NSString *const playbackRate = @"rate";
         VLCMedia *media = nil;
         if(isNetWork){
             media = [VLCMedia mediaWithURL:_uri];
-//            media = [[VLCMedia alloc] initWithURL:_uri];
+            //            media = [[VLCMedia alloc] initWithURL:_uri];
         }else{
             media = [VLCMedia mediaWithPath: uri];
-//            media = [[VLCMedia alloc] initWithPath: uri];
+            //            media = [[VLCMedia alloc] initWithPath: uri];
         }
         
         media.delegate = self;
@@ -134,7 +140,7 @@ static NSString *const playbackRate = @"rate";
         [media parseWithOptions:VLCMediaParseLocal|VLCMediaFetchLocal|VLCMediaParseNetwork|VLCMediaFetchNetwork];
         
         _player.media = media;
-        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+//        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
         NSLog(@"autoplay: %i",autoplay);
         NSLog(@"isNetWork: %i",isNetWork);
         self.onVideoLoadStart(@{
@@ -150,103 +156,16 @@ static NSString *const playbackRate = @"rate";
 
 -(void)setResume:(BOOL)autoplay
 {
-    if(_player){
-        [_player stop];
-        [_player play];
-    }
-    //[self createPlayer:_source :autoplay];
-    /*if(_player){
-        [_player stop];
-        _player = nil;
-    }
-    NSArray* options = [_source objectForKey:@"initOptions"];
-    NSString* uri    = [_source objectForKey:@"uri"];
-    BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
-    NSURL* _uri    = [NSURL URLWithString:uri];
-    
-//    _player = [[VLCMediaPlayer alloc] init];
-    _player = [[VLCMediaPlayer alloc] initWithOptions:options];
-    [_player setDrawable:self];
-    _player.delegate = self;
-    _player.scaleFactor = 0;
-   NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
-    //设置缓存多少毫秒
-//    [mediaDictonary setObject:@"1500" forKey:@"network-caching"];
-    
-    for(NSString* option in options){
-            NSArray *array = [option componentsSeparatedByString:@"="];
-            if(array.count > 1){
-                [mediaDictonary setObject:array[1] forKey:array[0]];
-            }
-        }
-    
-    VLCMedia *media = nil;
-    if(isNetWork){
-        media = [VLCMedia mediaWithURL:_uri];
-    }else{
-        media = [VLCMedia mediaWithPath: uri];
-    }
-   [media addOptions:mediaDictonary];
-    _player.media = media;
-    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
-    NSLog(@"autoplay: %i",autoplay);
-    self.onVideoLoadStart(@{
-                            @"target": self.reactTag
-                            });*/
+//    if(_player){
+//        [_player stop];
+//        [_player play];
+//    }
+    [self createPlayer:_source :autoplay];
 }
 
 -(void)setSource:(NSDictionary *)source
 {
     [self createPlayer:source :[RCTConvert BOOL:[source objectForKey:@"autoplay"]]];
-    /*@try{
-        if(_player){
-            [_player stop];
-            _player = nil;
-        }
-        _source = source;
-        NSArray* options = [source objectForKey:@"initOptions"];
-        NSString* uri    = [source objectForKey:@"uri"];
-        BOOL    autoplay = [RCTConvert BOOL:[source objectForKey:@"autoplay"]];
-        BOOL isNetWork   = [RCTConvert BOOL:[_source objectForKey:@"isNetwork"]];
-        NSURL* _uri    = [NSURL URLWithString:uri];
-        
-        //init player && play
-        _player = [[VLCMediaPlayer alloc] initWithOptions:options];
-//        _player = [[VLCMediaPlayer alloc] init];
-        [_player setDrawable:self];
-        _player.delegate = self;
-        _player.scaleFactor = 0;
-        NSMutableDictionary *mediaDictonary = [NSMutableDictionary new];
-        //设置缓存多少毫秒
-//        [mediaDictonary setObject:@"200" forKey:@":network-caching"];
-        
-        for(NSString* option in options){
-            NSArray *array = [option componentsSeparatedByString:@"="];
-            if(array.count > 1){
-                [mediaDictonary setObject:array[1] forKey:array[0]];
-            }
-        }
-        
-        VLCMedia *media = nil;
-        if(isNetWork){
-            media = [VLCMedia mediaWithURL:_uri];
-        }else{
-            media = [VLCMedia mediaWithPath: uri];
-        }
-        [media addOptions:mediaDictonary];
-        _player.media = media;
-        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
-        NSLog(@"autoplay: %i",autoplay);
-        NSLog(@"isNetWork: %i",isNetWork);
-        self.onVideoLoadStart(@{
-                                @"target": self.reactTag
-                                });
-        if(autoplay)
-            [self play];
-    }
-    @catch(NSException *exception){
-          NSLog(@"%@", exception);
-    }*/
 }
 
 - (void)mediaPlayerSnapshot:(NSNotification *)aNotification{
@@ -254,7 +173,7 @@ static NSString *const playbackRate = @"rate";
     self.onSnapshot(@{
                       @"target": self.reactTag,
                       @"success": [NSNumber numberWithInt:1],
-                    });
+                      });
 }
 
 - (void)mediaPlayerTimeChanged:(NSNotification *)aNotification
@@ -264,10 +183,10 @@ static NSString *const playbackRate = @"rate";
 
 - (void)mediaPlayerStateChanged:(NSNotification *)aNotification
 {
-   
-     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-     NSLog(@"userInfo %@",[aNotification userInfo]);
-     NSLog(@"standardUserDefaults %@",defaults);
+    
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSLog(@"userInfo %@",[aNotification userInfo]);
+    NSLog(@"standardUserDefaults %@",defaults);
     if(_player){
         BOOL isPlaying = _player.isPlaying;
         BOOL hasVideoOut = _player.hasVideoOut;
@@ -356,9 +275,9 @@ static NSString *const playbackRate = @"rate";
                 break;
         }
         self.onIsPlaying(@{
-                               @"target": self.reactTag,
-                               @"isPlaying": [NSNumber numberWithBool: isPlaying],
-                               });
+                           @"target": self.reactTag,
+                           @"isPlaying": [NSNumber numberWithBool: isPlaying],
+                           });
     }
 }
 
@@ -369,17 +288,17 @@ static NSString *const playbackRate = @"rate";
         int remainingTime = [[_player remainingTime] intValue];
         int duration      = [_player.media.length intValue];
         
-//        if( currentTime >= 0 && currentTime < duration) {
-            self.onVideoProgress(@{
-                                   @"target": self.reactTag,
-                                   @"currentTime": [NSNumber numberWithInt:currentTime],
-                                   @"remainingTime": [NSNumber numberWithInt:remainingTime],
-                                   @"duration":[NSNumber numberWithInt:duration],
-                                   @"position":[NSNumber numberWithFloat:_player.position],
-                                   @"isPlaying": [NSNumber numberWithBool: _player.isPlaying],
-                                   @"hasVideoOut": [NSNumber numberWithBool: _player.hasVideoOut],
-                                   });
-//        }
+        //        if( currentTime >= 0 && currentTime < duration) {
+        self.onVideoProgress(@{
+                               @"target": self.reactTag,
+                               @"currentTime": [NSNumber numberWithInt:currentTime],
+                               @"remainingTime": [NSNumber numberWithInt:remainingTime],
+                               @"duration":[NSNumber numberWithInt:duration],
+                               @"position":[NSNumber numberWithFloat:_player.position],
+                               @"isPlaying": [NSNumber numberWithBool: _player.isPlaying],
+                               @"hasVideoOut": [NSNumber numberWithBool: _player.hasVideoOut],
+                               });
+        //        }
     }
 }
 
@@ -460,8 +379,9 @@ static NSString *const playbackRate = @"rate";
 
 
 -(void)setVideoAspectRatio:(NSString *)ratio{
-    char *char_content = [ratio cStringUsingEncoding:NSASCIIStringEncoding];
-    [_player setVideoAspectRatio:char_content];
+    _aspectRatio = ratio;
+    char* aspectRatio = [ratio cStringUsingEncoding:NSASCIIStringEncoding];
+    [_player setVideoAspectRatio:aspectRatio];
 }
 
 - (void)_release
@@ -501,6 +421,7 @@ static NSString *const playbackRate = @"rate";
 {
     NSLog(@"removeFromSuperview");
     [self _release];
+    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
     [super removeFromSuperview];
 }
 
