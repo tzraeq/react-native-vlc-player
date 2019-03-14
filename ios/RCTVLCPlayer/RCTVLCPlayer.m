@@ -24,7 +24,7 @@ static NSString *const playbackRate = @"rate";
     NSDictionary * _source;
     BOOL _paused;
     BOOL __paused;
-//    BOOL _started;
+    //    BOOL _started;
     NSString* _aspectRatio;
 }
 
@@ -34,24 +34,21 @@ static NSString *const playbackRate = @"rate";
     if ((self = [super init])) {
         _eventDispatcher = eventDispatcher;
         
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationWillResignActive:)
-                                                     name:UIApplicationWillResignActiveNotification
-                                                   object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationDidEnterBackground:)
-                                                     name:UIApplicationDidEnterBackgroundNotification
-                                                   object:nil];
+        NSNotificationCenter* defaultCenter = [NSNotificationCenter defaultCenter];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationWillEnterForeground:)
-                                                     name:UIApplicationWillEnterForegroundNotification
-                                                   object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationDidBecomeActive:)
-                                                     name:UIApplicationDidBecomeActiveNotification
-                                                   object:nil];
+        [defaultCenter addObserver:self
+                         selector:@selector(applicationWillResignActive:)
+                             name:UIApplicationWillResignActiveNotification
+                           object:nil];
+        [defaultCenter addObserver:self
+                         selector:@selector(applicationDidEnterBackground:)
+                             name:UIApplicationDidEnterBackgroundNotification
+                           object:nil];
         
+        [defaultCenter addObserver:self
+                         selector:@selector(applicationWillEnterForeground:)
+                             name:UIApplicationWillEnterForegroundNotification
+                           object:nil];
     }
     
     return self;
@@ -68,20 +65,14 @@ static NSString *const playbackRate = @"rate";
 - (void)applicationDidEnterBackground:(NSNotification *)notification
 {
     if(!__paused) {
-        [_player pause];
+//        [_player pause];
+        [_player stop];//we must stop,because the user may lock screen after this notification
     }
 }
 
 - (void)applicationWillEnterForeground:(NSNotification *)notification
 {
     [self applyModifiers];
-}
-
-- (void)applicationDidBecomeActive:(NSNotification *)notification
-{
-    if(!__paused) {
-        [_player play];
-    }
 }
 
 - (void)applyModifiers
@@ -99,7 +90,7 @@ static NSString *const playbackRate = @"rate";
         }else {
             [_player pause];
             _paused =  YES;
-//            _started = NO;
+            //            _started = NO;
         }
     }
 }
@@ -109,7 +100,7 @@ static NSString *const playbackRate = @"rate";
     if(_player){
         [_player play];
         _paused = NO;
-//        _started = YES;
+        //        _started = YES;
     }
 }
 
@@ -164,7 +155,7 @@ static NSString *const playbackRate = @"rate";
         [media parseWithOptions:VLCMediaParseLocal|VLCMediaFetchLocal|VLCMediaParseNetwork|VLCMediaFetchNetwork];
         
         _player.media = media;
-//        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+        //        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
         NSLog(@"autoplay: %i",autoplay);
         NSLog(@"isNetWork: %i",isNetWork);
         self.onVideoLoadStart(@{
@@ -180,10 +171,10 @@ static NSString *const playbackRate = @"rate";
 
 -(void)setResume:(BOOL)autoplay
 {
-//    if(_player){
-//        [_player stop];
-//        [_player play];
-//    }
+    //    if(_player){
+    //        [_player stop];
+    //        [_player play];
+    //    }
     [self createPlayer:_source :autoplay];
 }
 
@@ -445,7 +436,7 @@ static NSString *const playbackRate = @"rate";
 {
     NSLog(@"removeFromSuperview");
     [self _release];
-//    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    //    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
     [super removeFromSuperview];
 }
 
