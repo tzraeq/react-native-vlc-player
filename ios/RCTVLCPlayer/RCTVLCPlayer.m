@@ -23,6 +23,7 @@ static NSString *const playbackRate = @"rate";
     
     NSDictionary * _source;
     BOOL _paused;
+    BOOL __paused;
 //    BOOL _started;
     NSString* _aspectRatio;
 }
@@ -37,10 +38,18 @@ static NSString *const playbackRate = @"rate";
                                                  selector:@selector(applicationWillResignActive:)
                                                      name:UIApplicationWillResignActiveNotification
                                                    object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(applicationDidEnterBackground:)
+                                                     name:UIApplicationDidEnterBackgroundNotification
+                                                   object:nil];
         
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(applicationWillEnterForeground:)
                                                      name:UIApplicationWillEnterForegroundNotification
+                                                   object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(applicationDidBecomeActive:)
+                                                     name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
         
     }
@@ -56,9 +65,23 @@ static NSString *const playbackRate = @"rate";
     }
 }
 
+- (void)applicationDidEnterBackground:(NSNotification *)notification
+{
+    if(!__paused) {
+        [_player pause];
+    }
+}
+
 - (void)applicationWillEnterForeground:(NSNotification *)notification
 {
     [self applyModifiers];
+}
+
+- (void)applicationDidBecomeActive:(NSNotification *)notification
+{
+    if(!__paused) {
+        [_player play];
+    }
 }
 
 - (void)applyModifiers
@@ -70,6 +93,7 @@ static NSString *const playbackRate = @"rate";
 - (void)setPaused:(BOOL)paused
 {
     if(_player){
+        __paused = paused;
         if(!paused){
             [self play];
         }else {
@@ -421,7 +445,7 @@ static NSString *const playbackRate = @"rate";
 {
     NSLog(@"removeFromSuperview");
     [self _release];
-    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+//    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
     [super removeFromSuperview];
 }
 
