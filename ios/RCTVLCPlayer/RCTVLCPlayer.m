@@ -26,6 +26,7 @@ static NSString *const playbackRate = @"rate";
     BOOL __paused;
     //    BOOL _started;
     NSString* _aspectRatio;
+    BOOL _muted;
 }
 
 
@@ -155,7 +156,7 @@ static NSString *const playbackRate = @"rate";
         [media parseWithOptions:VLCMediaParseLocal|VLCMediaFetchLocal|VLCMediaParseNetwork|VLCMediaFetchNetwork];
         
         _player.media = media;
-        //        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+//        [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
         NSLog(@"autoplay: %i",autoplay);
         NSLog(@"isNetWork: %i",isNetWork);
         self.onVideoLoadStart(@{
@@ -302,7 +303,10 @@ static NSString *const playbackRate = @"rate";
         int currentTime   = [[_player time] intValue];
         int remainingTime = [[_player remainingTime] intValue];
         int duration      = [_player.media.length intValue];
-        
+
+        if(_muted && !_player.audio.isMuted)
+            _player.audio.muted = _muted;
+
         //        if( currentTime >= 0 && currentTime < duration) {
         self.onVideoProgress(@{
                                @"target": self.reactTag,
@@ -335,8 +339,10 @@ static NSString *const playbackRate = @"rate";
 - (void)setMuted:(BOOL)muted
 {
     if(_player){
+        _muted = muted;
         VLCAudio *audio = _player.audio;
-        [audio setMuted: muted];
+//        [audio setMuted: muted];
+        _player.audio.muted = muted;
     }
 }
 
