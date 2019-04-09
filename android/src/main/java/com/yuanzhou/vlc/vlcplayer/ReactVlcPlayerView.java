@@ -79,6 +79,7 @@ class ReactVlcPlayerView extends SurfaceView implements
     private int preVolume = 200;
     private boolean haEnabled = false;
     private boolean hasVideoOut = false;
+    private boolean muted = false;
 
     // React
     private final ThemedReactContext themedReactContext;
@@ -212,6 +213,9 @@ class ReactVlcPlayerView extends SurfaceView implements
                     eventEmitter.onVideoStateChange(map);
                     break;
                 case MediaPlayer.Event.Buffering:
+                    if(muted){
+                        mMediaPlayer.setAudioTrack(-1);
+                    }
                     map.putDouble("bufferRate",event.getBuffering());
                     map.putString("type","Buffering");
                     eventEmitter.onVideoStateChange(map);
@@ -412,6 +416,7 @@ class ReactVlcPlayerView extends SurfaceView implements
      * @param muted
      */
     public void setMutedModifier(boolean muted) {
+        this.muted = muted;
         if(mMediaPlayer != null){
             if(muted){
                 mMediaPlayer.setAudioTrack(-1);
