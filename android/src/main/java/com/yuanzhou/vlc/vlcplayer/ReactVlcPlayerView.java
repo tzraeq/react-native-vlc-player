@@ -2,16 +2,15 @@ package com.yuanzhou.vlc.vlcplayer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -22,16 +21,16 @@ import org.videolan.libvlc.IVLCVout;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
-import org.videolan.libvlc.util.VLCUtil;
 import org.videolan.vlc.RecordEvent;
 import org.videolan.vlc.util.VLCInstance;
-import org.videolan.vlc.VlcVideoView;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 @SuppressLint("ViewConstructor")
-class ReactVlcPlayerView extends SurfaceView implements
+class ReactVlcPlayerView extends TextureView implements
         LifecycleEventListener,
         AudioManager.OnAudioFocusChangeListener{
 
@@ -40,31 +39,14 @@ class ReactVlcPlayerView extends SurfaceView implements
     private final VideoEventEmitter eventEmitter;
     private LibVLC libvlc;
     private MediaPlayer mMediaPlayer = null;
-    SurfaceView surfaceView;
+    private Surface surfaceVideo;//视频画布
+    TextureView surfaceView;
     private boolean isSurfaceViewDestory;
     //资源路径
     private String src;
     //是否网络资源
     private  boolean netStrTag;
     private String[] initOptions;
-
-
-    //private Handler mainHandler;
-   /* private static final int SURFACE_BEST_FIT = 0;
-    private static final int SURFACE_FIT_HORIZONTAL = 1;
-    private static final int SURFACE_FIT_VERTICAL = 2;
-    private static final int SURFACE_FILL = 3;
-    private static final int SURFACE_16_9 = 4;
-    private static final int SURFACE_4_3 = 5;
-    private static final int SURFACE_ORIGINAL = 6;
-    private int mCurrentSize = SURFACE_BEST_FIT;*/
-    // Props from React
-    /* private Uri srcUri;
-    private String extension;
-    private boolean repeat;
-    private boolean disableFocus;
-    private boolean playInBackground = false;*/
-    // \ End props
 
     private int mVideoHeight = 0;
     private int mVideoWidth = 0;
@@ -77,16 +59,14 @@ class ReactVlcPlayerView extends SurfaceView implements
     private boolean isPaused = true;
     private boolean isHostPaused = false;
     private int preVolume = 200;
-    private boolean haEnabled = false;
+    private boolean haEnabled = true;
     private boolean hasVideoOut = false;
     private boolean muted = false;
+    private String aspectRatio = null;
 
     // React
     private final ThemedReactContext themedReactContext;
     private final AudioManager audioManager;
-
-
-
 
     public ReactVlcPlayerView(ThemedReactContext context) {
         super(context);
@@ -97,6 +77,10 @@ class ReactVlcPlayerView extends SurfaceView implements
         DisplayMetrics dm = getResources().getDisplayMetrics();
         screenHeight = dm.heightPixels;
         screenWidth = dm.widthPixels;
+
+        surfaceView = this;
+        surfaceView.setSurfaceTextureListener(videoSurfaceListener);
+        surfaceView.addOnLayoutChangeListener(onLayoutChangeListener);
     }
 
 
@@ -125,11 +109,12 @@ class ReactVlcPlayerView extends SurfaceView implements
         if(mMediaPlayer != null && isSurfaceViewDestory && isHostPaused){
             IVLCVout vlcOut =  mMediaPlayer.getVLCVout();
             if(!vlcOut.areViewsAttached()){
-                vlcOut.setVideoSurface(this.getHolder().getSurface(), this.getHolder());
-                vlcOut.attachViews(onNewVideoLayoutListener);
+//                vlcOut.setVideoSurface(this.getHolder().getSurface(), this.getHolder());
+//                vlcOut.attachViews(onNewVideoLayoutListener);
+                attachViews();
                 isSurfaceViewDestory = false;
                 isPaused = false;
-                this.getHolder().setKeepScreenOn(true);
+                this.setKeepScreenOn(true);
                 mMediaPlayer.play();
             }
         }
@@ -142,7 +127,7 @@ class ReactVlcPlayerView extends SurfaceView implements
             isPaused = true;
             isHostPaused = true;
             mMediaPlayer.pause();
-            this.getHolder().setKeepScreenOn(false);
+            this.setKeepScreenOn(false);
             WritableMap map = Arguments.createMap();
             map.putString("type","Paused");
             eventEmitter.onVideoStateChange(map);
@@ -231,15 +216,18 @@ class ReactVlcPlayerView extends SurfaceView implements
                 case MediaPlayer.Event.TimeChanged:
                     map.putString("type","TimeChanged");
                     eventEmitter.onVideoStateChange(map);
-                    currentTime = mMediaPlayer.getTime();
-                    totalLength = mMediaPlayer.getLength();
+                    eventEmitter.progressChanged(currentTime, totalLength);
+                    break;
+                case MediaPlayer.Event.PositionChanged:
+                    map.putString("type","PositionChanged");
+                    eventEmitter.onVideoStateChange(map);
                     eventEmitter.progressChanged(currentTime, totalLength);
                     break;
                 case MediaPlayer.Event.Vout:
-//                    map.putString("type","Vout");
-//                    map.putBoolean("hasVideoOut",event.getVoutCount() > 0);
-                    hasVideoOut = (event.getVoutCount() > 0);
-//                    eventEmitter.onVideoStateChange(map);
+//                    hasVideoOut = (event.getVoutCount() > 0);
+                    map.putString("type","Vout");
+                    map.putBoolean("hasVideoOut",hasVideoOut);
+                    eventEmitter.onVideoStateChange(map);
                     break;
                 default:
                     map.putString("type",event.type+"");
@@ -306,17 +294,17 @@ class ReactVlcPlayerView extends SurfaceView implements
             mMediaPlayer = new MediaPlayer(libvlc);
             mMediaPlayer.setEventListener(mPlayerListener);
             surfaceView = this;
-            surfaceView.addOnLayoutChangeListener(onLayoutChangeListener);
-            this.getHolder().setKeepScreenOn(true);
+//            surfaceView.addOnLayoutChangeListener(onLayoutChangeListener);
+            this.setKeepScreenOn(true);
             IVLCVout vlcOut =  mMediaPlayer.getVLCVout();
             if(mVideoWidth > 0 && mVideoHeight > 0){
                 vlcOut.setWindowSize(mVideoWidth,mVideoHeight);
             }
             if (!vlcOut.areViewsAttached()) {
                 vlcOut.addCallback(callback);
-                vlcOut.setVideoView(surfaceView);
-                //vlcOut.setVideoSurface(this.getHolder().getSurface(), this.getHolder());
-                vlcOut.attachViews(onNewVideoLayoutListener);
+//                vlcOut.setVideoView(surfaceView);
+//                vlcOut.attachViews(onNewVideoLayoutListener);
+                attachViews();
             }
             DisplayMetrics dm = getResources().getDisplayMetrics();
             Media m = null;
@@ -327,7 +315,9 @@ class ReactVlcPlayerView extends SurfaceView implements
                 m = new Media(libvlc, this.src);
             }
 
-            m.setHWDecoderEnabled(this.haEnabled, false);
+            if(this.haEnabled){
+                m.setHWDecoderEnabled(true, false);
+            }
 
             if(null != initOptions){
                 for(int i = 0; i < initOptions.length; i++){
@@ -343,6 +333,7 @@ class ReactVlcPlayerView extends SurfaceView implements
             m.addOption(":demux=h264");*/
 
             mMediaPlayer.setMedia(m);
+            mMediaPlayer.setAspectRatio(aspectRatio);
             mMediaPlayer.setScale(0);
             if(autoplay){
                 isPaused = false;
@@ -362,7 +353,7 @@ class ReactVlcPlayerView extends SurfaceView implements
         final IVLCVout vout = mMediaPlayer.getVLCVout();
         vout.removeCallback(callback);
         vout.detachViews();
-        surfaceView.removeOnLayoutChangeListener(onLayoutChangeListener);
+//        surfaceView.removeOnLayoutChangeListener(onLayoutChangeListener);
         libvlc.release();
         libvlc = null;
     }
@@ -449,13 +440,15 @@ class ReactVlcPlayerView extends SurfaceView implements
      */
     public int doSnapshot(String path){
         if(mMediaPlayer != null){
-            int result = new RecordEvent().takeSnapshot(mMediaPlayer,path,0,0);
+            boolean result = saveBitmap(path,this.getBitmap());
+            return result?1:0;
+            /*int result = new RecordEvent().takeSnapshot(mMediaPlayer,path,0,0);
             if(result == 0){
                 eventEmitter.onSnapshot(1);
             }else{
                 eventEmitter.onSnapshot(0);
             }
-            return result;
+            return result;*/
         }
         return -1;
     }
@@ -482,6 +475,7 @@ class ReactVlcPlayerView extends SurfaceView implements
      * @param aspectRatio
      */
     public void setAspectRatio(String aspectRatio){
+        this.aspectRatio = aspectRatio;
         if(mMediaPlayer != null){
             mMediaPlayer.setAspectRatio(aspectRatio);
         }
@@ -504,7 +498,9 @@ class ReactVlcPlayerView extends SurfaceView implements
 
     public int takeSnapshot(String path){
         if(mMediaPlayer != null) {
-            return new RecordEvent().takeSnapshot(mMediaPlayer, path, 0, 0);
+            boolean result = saveBitmap(path,this.getBitmap());
+            return result?0:-1;
+//            return new RecordEvent().takeSnapshot(mMediaPlayer, path, 0, 0);
         }
         return -1;
     }
@@ -518,96 +514,61 @@ class ReactVlcPlayerView extends SurfaceView implements
         return new RecordEvent().stopRecord(mMediaPlayer);
     }
 
-    /*private void changeSurfaceSize(boolean message) {
-
-        if (mMediaPlayer != null) {
-            final IVLCVout vlcVout = mMediaPlayer.getVLCVout();
-            vlcVout.setWindowSize(screenWidth, screenHeight);
+    public static boolean saveBitmap(String savePath, Bitmap mBitmap) {
+        try {
+            File filePic = new File(savePath);
+            if (!filePic.exists()) {
+                filePic.getParentFile().mkdirs();
+                filePic.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(filePic);
+            mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
 
-        double displayWidth = screenWidth, displayHeight = screenHeight;
+        return true;
+    }
 
-        if (screenWidth < screenHeight) {
-            displayWidth = screenHeight;
-            displayHeight = screenWidth;
+    private void attachViews(){
+        IVLCVout vlcOut = mMediaPlayer.getVLCVout();
+        if (!vlcOut.areViewsAttached() && null != surfaceVideo){
+            vlcOut.attachSurfaceSlave(surfaceVideo,null,onNewVideoLayoutListener);
+        }
+    }
+
+    private TextureView.SurfaceTextureListener videoSurfaceListener = new TextureView.SurfaceTextureListener() {
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+//            videoMediaLogic.setWindowSize(width, height);
+//            videoMediaLogic.setSurface(new Surface(surface), null);
+            surfaceVideo = new Surface(surface);
+            if (mMediaPlayer!=null){
+                IVLCVout vlcOut = mMediaPlayer.getVLCVout();
+                vlcOut.setWindowSize(width,height);
+                attachViews();
+            }
         }
 
-        // sanity check
-        if (displayWidth * displayHeight <= 1 || mVideoWidth * mVideoHeight <= 1) {
-            return;
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+//            videoMediaLogic.setWindowSize(width, height);
+            mMediaPlayer.getVLCVout().setWindowSize(width,height);
         }
 
-        // compute the aspect ratio
-        double aspectRatio, visibleWidth;
-        if (mSarDen == mSarNum) {
-            *//* No indication about the density, assuming 1:1 *//*
-            visibleWidth = mVideoVisibleWidth;
-            aspectRatio = (double) mVideoVisibleWidth / (double) mVideoVisibleHeight;
-        } else {
-            *//* Use the specified aspect ratio *//*
-            visibleWidth = mVideoVisibleWidth * (double) mSarNum / mSarDen;
-            aspectRatio = visibleWidth / mVideoVisibleHeight;
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+//            videoMediaLogic.onSurfaceTextureDestroyedUI();
+            mMediaPlayer.getVLCVout().detachViews();
+            return true;//回收掉Surface
         }
 
-        // compute the display aspect ratio
-        double displayAspectRatio = displayWidth / displayHeight;
-
-        counter ++;
-
-        switch (mCurrentSize) {
-            case SURFACE_BEST_FIT:
-                if(counter > 2)
-                    Toast.makeText(getContext(), "Best Fit", Toast.LENGTH_SHORT).show();
-                if (displayAspectRatio < aspectRatio)
-                    displayHeight = displayWidth / aspectRatio;
-                else
-                    displayWidth = displayHeight * aspectRatio;
-                break;
-            case SURFACE_FIT_HORIZONTAL:
-                Toast.makeText(getContext(), "Fit Horizontal", Toast.LENGTH_SHORT).show();
-                displayHeight = displayWidth / aspectRatio;
-                break;
-            case SURFACE_FIT_VERTICAL:
-                Toast.makeText(getContext(), "Fit Horizontal", Toast.LENGTH_SHORT).show();
-                displayWidth = displayHeight * aspectRatio;
-                break;
-            case SURFACE_FILL:
-                Toast.makeText(getContext(), "Fill", Toast.LENGTH_SHORT).show();
-                break;
-            case SURFACE_16_9:
-                Toast.makeText(getContext(), "16:9", Toast.LENGTH_SHORT).show();
-                aspectRatio = 16.0 / 9.0;
-                if (displayAspectRatio < aspectRatio)
-                    displayHeight = displayWidth / aspectRatio;
-                else
-                    displayWidth = displayHeight * aspectRatio;
-                break;
-            case SURFACE_4_3:
-                Toast.makeText(getContext(), "4:3", Toast.LENGTH_SHORT).show();
-                aspectRatio = 4.0 / 3.0;
-                if (displayAspectRatio < aspectRatio)
-                    displayHeight = displayWidth / aspectRatio;
-                else
-                    displayWidth = displayHeight * aspectRatio;
-                break;
-            case SURFACE_ORIGINAL:
-                Toast.makeText(getContext(), "Original", Toast.LENGTH_SHORT).show();
-                displayHeight = mVideoVisibleHeight;
-                displayWidth = visibleWidth;
-                break;
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            hasVideoOut = true;
         }
-
-        // set display size
-        int finalWidth = (int) Math.ceil(displayWidth * mVideoWidth / mVideoVisibleWidth);
-        int finalHeight = (int) Math.ceil(displayHeight * mVideoHeight / mVideoVisibleHeight);
-
-        SurfaceHolder holder = this.getHolder();
-        holder.setFixedSize(finalWidth, finalHeight);
-
-        ViewGroup.LayoutParams lp = this.getLayoutParams();
-        lp.width = finalWidth;
-        lp.height = finalHeight;
-        this.setLayoutParams(lp);
-        this.invalidate();
-    }*/
+    };
 }
